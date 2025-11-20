@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poi加密解密工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .encode-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .decode-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .result-section h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 2px solid #e0e0e0;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            min-height: 120px;
+            max-height: 300px;
+            white-space: pre-wrap;
+            transition: all 0.3s;
+            overflow-y: auto;
+            resize: vertical;
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .result-text.success {
+            border-color: #4caf50;
+            background-color: #f1f8e9;
+        }
+
+        .result-text.error {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .copy-btn, .clear-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .copy-btn {
+            background: #2196f3;
+            color: white;
+        }
+
+        .clear-btn {
+            background: #ff9800;
+            color: white;
+        }
+
+        .copy-btn:hover, .clear-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .stats-info {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #e3f2fd;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+
+        /* Toast提示样式 */
+        .toast {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        .result-section {
+            position: relative;
+        }
+
+        .info-section {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #1565c0;
+        }
+
+        @media (max-width: 600px) {
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Poi加密解密工具</h1>
+            <p>万物皆可poi - 纯浏览器端加密解密</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2>输入文本</h2>
+                <textarea id="inputText" placeholder="请输入要加密或解密的文本..."></textarea>
+                
+                <div class="button-group">
+                    <button class="encode-btn" onclick="encodeText()">加密 (Encode)</button>
+                    <button class="decode-btn" onclick="decodeText()">解密 (Decode)</button>
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <h3>结果</h3>
+                <textarea id="resultText" class="result-text" readonly>结果将显示在这里...</textarea>
+                <div class="result-actions">
+                    <button onclick="copyResult()" class="copy-btn">复制结果</button>
+                    <button onclick="clearAll()" class="clear-btn">清空所有</button>
+                </div>
+                <div id="stats" class="stats-info"></div>
+            </div>
+            
+            <div class="info-section">
+                <p><strong>关于Poi加密：</strong>这是一种基于poi和nico的简单加密算法，可以将任意文本转换为poi/nico格式的字符串。</p>
+                <p><strong>特点：</strong>纯浏览器端运行，无需服务器，不产生中间文件，数据完全在本地处理。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 内联JavaScript类定义，避免文件加载问题
+        class PoiEncoder {
+            constructor() {
+                this.currectNumber = 1;
+                this.finalString = '';
+                this.currectBit = false;
+                this.already = false;
+            }
+
+            numberToSymbol(num) {
+                if (num <= 0) throw new Error('非法参数');
+                const symbolMap = {'0':')','1':'!','2':'@','3':'#','4':'$','5':'%','6':'^','7':'&','8':'*','9':'('};
+                return num.toString().split('').map(d => symbolMap[d]).join('');
+            }
+
+            bitWriteWorker(bit, len) {
+                this.finalString += (bit === 0 ? 'poi~' : 'nico~') + this.numberToSymbol(len) + '~';
+            }
+
+            addBit(bit) {
+                if (this.currectBit === false) {
+                    this.currectBit = bit;
+                    this.currectNumber = 1;
+                } else if (this.currectBit !== bit) {
+                    this.bitWriteWorker(this.currectBit, this.currectNumber);
+                    this.currectBit = bit;
+                    this.currectNumber = 1;
+                } else {
+                    this.currectNumber++;
+                }
+            }
+
+            addByte(byte) {
+                const charCode = byte.charCodeAt(0);
+                for (let i = 0; i < 8; i++) {
+                    this.addBit((charCode & (0x80 >> i)) > 0 ? 1 : 0);
+                }
+            }
+
+            getEncode(text) {
+                if (this.already) return this.finalString;
+                this.currectNumber = 1; this.finalString = ''; this.currectBit = false;
+                for (let i = 0; i < text.length; i++) this.addByte(text[i]);
+                if (this.currectBit !== false) this.bitWriteWorker(this.currectBit, this.currectNumber);
+                this.already = true;
+                return this.finalString;
+            }
+        }
+
+        class PoiDecoder {
+            constructor(data) {
+                this.poiedContents = data;
+                this.bitBufferLen = 0; this.bitBuffer = 0; this.finalStr = ''; this.already = false;
+            }
+
+            symbolToNumber(symbol) {
+                const symbolMap = {')':'0','!':'1','@':'2','#':'3','$':'4','%':'5','^':'6','&':'7','*':'8','(':'9'};
+                return parseInt(symbol.split('').map(c => symbolMap[c]).join(''), 10);
+            }
+
+            decodePoiStruct() {
+                return this.poiedContents.split('~').filter(v => v !== '').map(v => {
+                    if (v === 'poi') return 0; if (v === 'nico') return 1;
+                    return this.symbolToNumber(v);
+                });
+            }
+
+            bitWorker(bit, times) {
+                for (let i = 0; i < times; i++) {
+                    this.bitBuffer |= bit << (7 - this.bitBufferLen);
+                    if (++this.bitBufferLen >= 8) {
+                        this.finalStr += String.fromCharCode(this.bitBuffer);
+                        this.bitBufferLen = this.bitBuffer = 0;
+                    }
+                }
+            }
+
+            getDecode() {
+                if (this.already) return this.finalStr;
+                const poiStruct = this.decodePoiStruct();
+                let bit = 0, times = 0;
+                for (let i = 0; i < poiStruct.length; i += 2) {
+                    if (i + 1 < poiStruct.length) {
+                        this.bitWorker(poiStruct[i], poiStruct[i + 1]);
+                    }
+                }
+                if (this.bitBufferLen !== 0) throw new Error('数据损坏');
+                this.already = true;
+                return this.finalStr;
+            }
+        }
+
+        function encodeText() {
+            const input = document.getElementById('inputText').value;
+            if (!input.trim()) {
+                showResult('请输入要加密的文本', 'error');
+                return;
+            }
+            
+            try {
+                const encoder = new PoiEncoder();
+                const result = encoder.getEncode(input);
+                showResult(result, 'success');
+                updateStats(input, result);
+            } catch (error) {
+                showResult('加密失败: ' + error.message, 'error');
+            }
+        }
+
+        function decodeText() {
+            const input = document.getElementById('inputText').value;
+            if (!input.trim()) {
+                showResult('请输入要解密的文本', 'error');
+                return;
+            }
+            
+            try {
+                const decoder = new PoiDecoder(input);
+                const result = decoder.getDecode();
+                showResult(result, 'success');
+                updateStats(result, input);
+            } catch (error) {
+                showResult('解密失败: ' + error.message, 'error');
+            }
+        }
+
+        function showResult(text, type) {
+            const resultElement = document.getElementById('resultText');
+            resultElement.value = text;
+            resultElement.className = 'result-text ' + type;
+        }
+
+        function updateStats(original, processed) {
+            const stats = document.getElementById('stats');
+            if (!stats) return;
+            
+            const originalLength = original.length;
+            const processedLength = processed.length;
+            const ratio = ((processedLength / originalLength) * 100).toFixed(1);
+            
+            stats.innerHTML = `原始长度: ${originalLength} 字符 | 处理后: ${processedLength} 字符 | 比率: ${ratio}%`;
+        }
+
+        function copyResult() {
+            const resultText = document.getElementById('resultText').value;
+            if (resultText && resultText !== '结果将显示在这里...') {
+                navigator.clipboard.writeText(resultText).then(function() {
+                    showToast('结果已复制到剪贴板！', 'success');
+                }).catch(function() {
+                    showToast('复制失败，请手动选择并复制', 'error');
+                });
+            } else {
+                showToast('没有可复制的内容', 'error');
+            }
+        }
+
+        function showToast(message, type) {
+            // 移除已存在的toast
+            const existingToast = document.getElementById('copyToast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            // 创建新的toast
+            const toast = document.createElement('div');
+            toast.id = 'copyToast';
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            
+            // 添加到结果div框架内
+            const resultSection = document.querySelector('.result-section');
+            resultSection.appendChild(toast);
+
+            // 显示toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // 3秒后自动消失
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function clearAll() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('resultText').textContent = '结果将显示在这里...';
+            document.getElementById('resultText').className = 'result-text';
+            const stats = document.getElementById('stats');
+            if (stats) stats.innerHTML = '';
+        }
+
+        // 键盘快捷键支持
+        document.getElementById('inputText').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                encodeText();
+            } else if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                decodeText();
+            }
+        });
+
+        // 页面加载后自动聚焦输入框
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('inputText').focus();
+        });
+    </script>
+</body>
+</html>
